@@ -15,8 +15,12 @@ def ilens(dates, past=False):
         if past:
             save_path = 'past_zip_file/'
         #-------------------------------------------------------------------------------------------
+        #create a directory when date changes
+        if not os.path.isdir(file_path + today_str):
+            os.mkdir(save_path)
+            
         file_name = url.split("=")[2] + '.zip'
-        file_save_path = os.path.join(save_path, file_name)
+        file_save_path = save_path + file_name
         with open(file_save_path, 'wb') as f:
             f.write(zip_file.content)
 
