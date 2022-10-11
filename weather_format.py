@@ -2,24 +2,21 @@ import os
 import pandas as pd
 from shutil import unpack_archive, rmtree
 import csv
+from tqdm import tqdm
 
 
 
 def format(past=False):
     #-------------------------------------------------------------------------------------------
     #set file paths
-    #zip_file_path = 'zip_file/'
-    #data_file_path = 'missing_data/'
-    zip_file_path = 'D:/test_development/Weather/Weather_down/zip_file/'
-    data_file_path = 'D:/test_development/Weather/Weather_update/missing_data/'
+    zip_file_path = 'zip_file/'
+    data_file_path = 'missing_data/'
     if past:
-        #zip_file_path = 'past_zip_file/'
-        #data_file_path = 'data/'
-        zip_file_path = 'D:/test_development/Weather/Weather_down/past_zip_file/'
-        data_file_path = 'D:/test_development/Weather/Weather_update/data/'
+        zip_file_path = 'past_zip_file/'
+        data_file_path = 'data/'
     
     #put the abbriviation and full name of the sites into a dictioanry
-    with open('D:/test_development/Weather/names.csv', 'r') as name_file:
+    with open('names.csv', 'r') as name_file:
     #-------------------------------------------------------------------------------------------
         names = csv.reader(name_file)
         name_dict = {name[0] : name[1] for name in names}
@@ -27,14 +24,14 @@ def format(past=False):
     if not os.path.isdir(data_file_path):
         os.mkdir(data_file_path)
 
-    for date_zip_file_name in os.listdir(zip_file_path):
-        #unzip the file to Weather_sort temporarily
+    for date_zip_file_name in tqdm(os.listdir(zip_file_path)):
+        #unzip the file to Weather_sort
         unpack_archive(zip_file_path + date_zip_file_name, data_file_path, 'zip')
 
         #extrcat the date file name from the zip file (2022-09-22.zip -> 20220922)
         date_file = ''.join(filter(str.isdigit, date_zip_file_name))
         date_file_path = data_file_path + date_file
-
+        
         #iterate through all the files
         for site_file in os.listdir(date_file_path):
 
@@ -56,6 +53,9 @@ def format(past=False):
 
             if site_file[:-13] not in name_dict:
                 os.remove(site_file_path)
+                continue
+                
+            if os.stat(site_file_path).st_size < 16:
                 continue
 
             df = pd.read_csv(site_file_path, usecols=[0, 1, 2], header=None)
